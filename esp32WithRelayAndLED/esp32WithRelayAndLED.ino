@@ -9,7 +9,7 @@
 const char *ssid = "YourWiFiSSID";
 const char *password = "YourWiFiPassword";
 const char *botToken = "YOUR_BOT_TOKEN";
-const char *chatId = "YOUR_CHAT_ID";
+const char *chat_id = "YOUR_CHAT_ID";
 
 #define FLASH_LED_PIN  4
 #define LED_LIGHT 12
