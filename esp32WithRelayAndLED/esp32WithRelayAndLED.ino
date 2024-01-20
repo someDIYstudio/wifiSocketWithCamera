@@ -15,7 +15,7 @@ const char *chat_id = "YOUR_CHAT_ID";
 #define LED_LIGHT 12
 #define RELAY 13
 
-const unsigned long BOT_MTBS = 1000;
+const unsigned long BOT_MTBS = 3000;
 
 unsigned long bot_lasttime; 
 WiFiClientSecure secured_client;
@@ -43,7 +43,7 @@ void setup()
 
   bot.longPoll = 60;
   
-  bot.sendMessageWithReplyKeyboard(chat_id, "Camera is online", "", "[[\"/start\"]]", true);
+  bot.sendMessageWithReplyKeyboard(chat_id, "Camera is online", "", "[[\"start\"]]", true);
 }
 
 void loop()
@@ -107,18 +107,20 @@ void handleNewMessages(int numNewMessages)
   for (int i = 0; i < numNewMessages; i++)
   {
     String text = bot.messages[i].text;
+
+    Serial.println(String(bot.messages[i].chat_id));
     
-    if (text == "/start")
+    if (text == "start" || text == "/start")
     {
-      String keyboardJson = "[[\"/photo\", \"/photo with LED\"],[\"/photo with flash\"],[\"/relayON\", \"/relayOFF\"]]";
-      bot.sendMessageWithReplyKeyboard(chat_id, "select action", "", keyboardJson, true);
+      String keyboardJson = "[[\"photo\", \"photo with LED\"],[\"photo with flash\"],[\"printer ON\", \"printer OFF\"]]";
+      bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", keyboardJson, true);
     }
 
-    if(text == "/photo") {
+    if(text == "photo") {
       captureAndSendPhoto();
     }
 
-    if(text == "/photo with LED") {
+    if(text == "photo with LED") {
       digitalWrite(LED_LIGHT, HIGH);
       delay(100);
       captureAndSendPhoto();
@@ -126,7 +128,7 @@ void handleNewMessages(int numNewMessages)
       digitalWrite(LED_LIGHT, LOW);
     }
 
-    if (text == "/photo with flash")
+    if (text == "photo with flash")
     {
       digitalWrite(FLASH_LED_PIN, HIGH);
       delay(100);
@@ -135,11 +137,13 @@ void handleNewMessages(int numNewMessages)
       digitalWrite(FLASH_LED_PIN, LOW);
     }
 
-    if(text == "/relayOFF"){
+    if(text == "printer OFF"){
       digitalWrite(RELAY, HIGH);
+      bot.sendMessage(chat_id, "printer turned off", "");
     }
-     if(text == "/relayON"){
+     if(text == "printer ON"){
       digitalWrite(RELAY, LOW);
+      bot.sendMessage(chat_id, "printer turned on", "");
     }
   }
 }
@@ -203,6 +207,7 @@ void sendTelegramPhoto(uint8_t *photoData, size_t photoSize) {
   } else {
     Serial.print("Error sending photo. HTTP response code: ");
     Serial.println(httpResponseCode);
+    bot.sendMessage(chat_id, "Error sending photo.", "");
   }
 
   http.end();
