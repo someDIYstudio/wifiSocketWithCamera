@@ -40,7 +40,7 @@ bool setupCamera()
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
 
-  config.frame_size = FRAMESIZE_SXGA; //QVGA(320x240)|CIF(352x288)|VGA(640x480)|SVGA(800X600)|XGA(1024x768)|SXGA(1280x1024)|UXGA(1600x1200)
+  config.frame_size = FRAMESIZE_XGA; //QVGA(320x240)|CIF(352x288)|VGA(640x480)|SVGA(800X600)|XGA(1024x768)|SXGA(1280x1024)|UXGA(1600x1200)
   config.jpeg_quality = 10;
   config.fb_count = 1;
 
@@ -56,4 +56,27 @@ bool setupCamera()
    s->set_saturation(s, -2);
 
   return true;
+}
+
+String nameOfFramesize(framesize_t framesize) {
+    switch (framesize) {
+        case FRAMESIZE_VGA:
+            return "Framesize: VGA (640x480)";
+            break;
+        case FRAMESIZE_SVGA:
+            return "Framesize: SVGA (800x600)";
+            break;
+        case FRAMESIZE_XGA:
+            return "Framesize: XGA (1024x768)";
+            break;
+        case FRAMESIZE_SXGA:
+            return "Framesize: SXGA (1280x1024)";
+            break;
+        case FRAMESIZE_UXGA:
+            return "Framesize: UXGA (1600x1200)";
+            break;
+        default:
+            return "Invalid framesize";
+            break;
+    }
 }
