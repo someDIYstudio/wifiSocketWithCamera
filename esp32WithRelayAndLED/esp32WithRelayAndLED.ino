@@ -11,13 +11,13 @@ const char *password = "YourWiFiPassword";
 const char *botToken = "YOUR_BOT_TOKEN";
 const char *chat_id = "YOUR_CHAT_ID";
 
-#define FLASH_LED_PIN  4
+#define FLASH_LED_PIN 4
 #define LED_LIGHT 12
 #define RELAY 13
 
 const unsigned long BOT_MTBS = 3000;
 
-unsigned long bot_lasttime; 
+unsigned long bot_lasttime;
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(botToken, secured_client);
 
@@ -25,8 +25,8 @@ camera_config_t config;
 
 void setup()
 {
-  //Serial.begin(115200);
-  //Serial.println();
+  // Serial.begin(115200);
+  // Serial.println();
   pinSetup();
 
   if (!setupCamera())
@@ -44,7 +44,7 @@ void setup()
   timeChek();
 
   bot.longPoll = 60;
-  
+
   bot.sendMessageWithReplyKeyboard(chat_id, "Camera is online", "", "[[\"start\"]]", true);
 }
 
@@ -58,14 +58,15 @@ void loop()
     {
       // Serial.println("got response");
       handleNewMessages(numNewMessages);
-      numNewMessages = bot.getUpdates(bot.last_message_received + 1); 
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
     }
 
     bot_lasttime = millis();
   }
 }
 
-void pinSetup(){
+void pinSetup()
+{
   pinMode(FLASH_LED_PIN, OUTPUT);
   digitalWrite(FLASH_LED_PIN, LOW);
   pinMode(LED_LIGHT, OUTPUT);
@@ -74,7 +75,8 @@ void pinSetup(){
   digitalWrite(RELAY, HIGH);
 }
 
-void wifiSetup(){
+void wifiSetup()
+{
   // Serial.print("Connecting to Wifi SSID ");
   // Serial.print(ssid);
   WiFi.begin(ssid, password);
@@ -88,9 +90,10 @@ void wifiSetup(){
   // Serial.println(WiFi.localIP());
 }
 
-void timeChek(){
+void timeChek()
+{
   // Serial.print("Retrieving time: ");
-  configTime(0, 0, "pool.ntp.org"); 
+  configTime(0, 0, "pool.ntp.org");
   time_t now = time(nullptr);
   while (now < 24 * 3600)
   {
@@ -106,7 +109,6 @@ void handleNewMessages(int numNewMessages)
   String mainMenu = "[[\"photo\", \"photo with LED\"],[\"photo with flash\"],";
   mainMenu += "[\"printer ON\", \"printer OFF\"],";
   mainMenu += "[\"current resolution\",\"setup frame size\"],";
-  mainMenu += "[\"send video\"], [\"restart esp\"]]"; //'send video' in progress
   String frameSizeMenu = "[[\"UXGA\", \"SXGA\", \"XGA\"],[\"SVGA\", \"VGA\"], [\"back\"]]";
   // Serial.println("handleNewMessages");
   // Serial.println(String(numNewMessages));
@@ -116,17 +118,19 @@ void handleNewMessages(int numNewMessages)
     String text = bot.messages[i].text;
 
     // Serial.println(String(bot.messages[i].chat_id));
-    
+
     if (text == "start" || text == "/start" || text == "back")
     {
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
     }
 
-    if(text == "photo") {
+    if (text == "photo")
+    {
       captureAndSendPhoto();
     }
 
-    if(text == "photo with LED") {
+    if (text == "photo with LED")
+    {
       digitalWrite(LED_LIGHT, HIGH);
       delay(100);
       captureAndSendPhoto();
@@ -143,55 +147,66 @@ void handleNewMessages(int numNewMessages)
       digitalWrite(FLASH_LED_PIN, LOW);
     }
 
-    //printer shutdown handling
-    if(text == "printer OFF"){
+    // printer shutdown handling
+    if (text == "printer OFF")
+    {
       bot.sendMessageWithReplyKeyboard(chat_id, "are you sure?", "", "[[\"yes\"], [\"no\"], [\"back\"]]", true);
     }
-      if(text == "yes"){
-        digitalWrite(RELAY, LOW);
-        bot.sendMessage(chat_id, "printer turned off", "");
-        bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
-      }
-      else if(text == "no"){
-        bot.sendMessage(chat_id, "canceled", "");
-        bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
-      }
+    if (text == "yes")
+    {
+      digitalWrite(RELAY, LOW);
+      bot.sendMessage(chat_id, "printer turned off", "");
+      bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
+    }
+    else if (text == "no")
+    {
+      bot.sendMessage(chat_id, "canceled", "");
+      bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
+    }
 
-     if(text == "printer ON"){
+    if (text == "printer ON")
+    {
       digitalWrite(RELAY, HIGH);
       bot.sendMessage(chat_id, "printer turned on", "");
     }
 
-    //camera resolutions
-    if(text == "current resolution") {
-        sensor_t *sensor = esp_camera_sensor_get();        
-        bot.sendMessage(chat_id, nameOfFramesize(sensor->status.framesize), "");
+    // camera resolutions
+    if (text == "current resolution")
+    {
+      sensor_t *sensor = esp_camera_sensor_get();
+      bot.sendMessage(chat_id, nameOfFramesize(sensor->status.framesize), "");
     }
-    if(text =="setup frame size"){
+    if (text == "setup frame size")
+    {
       bot.sendMessage(chat_id, "select image resolution", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", frameSizeMenu, true);
     }
-    if(text == "SVGA"){
+    if (text == "SVGA")
+    {
       changeResolution(FRAMESIZE_SVGA);
       bot.sendMessage(chat_id, "new resolution is SVGA", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
     }
-    if(text == "VGA"){
+    if (text == "VGA")
+    {
       changeResolution(FRAMESIZE_VGA);
       bot.sendMessage(chat_id, "new resolution is VGA", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
     }
-    if(text == "XGA"){
+    if (text == "XGA")
+    {
       changeResolution(FRAMESIZE_XGA);
       bot.sendMessage(chat_id, "new resolution is XGA", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
     }
-    if(text == "SXGA"){
+    if (text == "SXGA")
+    {
       changeResolution(FRAMESIZE_SXGA);
       bot.sendMessage(chat_id, "new resolution is SXGA", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
     }
-    if(text == "UXGA"){
+    if (text == "UXGA")
+    {
       changeResolution(FRAMESIZE_UXGA);
       bot.sendMessage(chat_id, "new resolution is UXGA", "");
       bot.sendMessageWithReplyKeyboard(chat_id, "select an action", "", mainMenu, true);
@@ -199,22 +214,26 @@ void handleNewMessages(int numNewMessages)
   }
 }
 
-bool takePhoto(){
+bool takePhoto()
+{
   delay(100);
-  camera_fb_t *fb = NULL; 
+  camera_fb_t *fb = NULL;
   fb = esp_camera_fb_get();
-  if(!fb) return false;
+  if (!fb)
+    return false;
   esp_camera_fb_return(fb);
   return true;
 }
 
+void captureAndSendPhoto()
+{
+  if (!takePhoto())
+    Serial.println("can't take a photo");
 
-void captureAndSendPhoto() {
-  if(!takePhoto()) Serial.println("can't take a photo");
-
-  camera_fb_t *fb = NULL; 
+  camera_fb_t *fb = NULL;
   fb = esp_camera_fb_get();
-  if (!fb) {
+  if (!fb)
+  {
     // Serial.println("Camera capture failed");
     return;
   }
@@ -224,7 +243,8 @@ void captureAndSendPhoto() {
   esp_camera_fb_return(fb);
 }
 
-void sendTelegramPhoto(uint8_t *photoData, size_t photoSize) {
+void sendTelegramPhoto(uint8_t *photoData, size_t photoSize)
+{
   // Serial.println("Sending photo to Telegram...");
   bot.sendChatAction(chat_id, "upload_photo");
 
@@ -245,7 +265,8 @@ void sendTelegramPhoto(uint8_t *photoData, size_t photoSize) {
   body += "Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n";
   body += "Content-Type: image/jpeg\r\n\r\n";
 
-  for (size_t i = 0; i < photoSize; i++) {
+  for (size_t i = 0; i < photoSize; i++)
+  {
     body += (char)photoData[i];
   }
 
@@ -254,9 +275,12 @@ void sendTelegramPhoto(uint8_t *photoData, size_t photoSize) {
 
   int httpResponseCode = http.POST(body);
 
-  if (httpResponseCode == 200) {
+  if (httpResponseCode == 200)
+  {
     // Serial.println("Photo sent successfully");
-  } else {
+  }
+  else
+  {
     // Serial.print("Error sending photo. HTTP response code: ");
     // Serial.println(httpResponseCode);
     bot.sendMessage(chat_id, "Error sending photo.", "");
@@ -267,7 +291,8 @@ void sendTelegramPhoto(uint8_t *photoData, size_t photoSize) {
   // Serial.println("done");
 }
 
-void changeResolution(framesize_t newSize) {
+void changeResolution(framesize_t newSize)
+{
   sensor_t *s = esp_camera_sensor_get();
-  s->set_framesize(s, newSize);  
+  s->set_framesize(s, newSize);
 }
