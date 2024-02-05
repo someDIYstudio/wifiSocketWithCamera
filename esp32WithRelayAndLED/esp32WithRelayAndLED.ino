@@ -25,20 +25,21 @@ camera_config_t config;
 
 void setup()
 {
-  // Serial.begin(115200);
-  // Serial.println();
+  Serial.begin(115200);
+  Serial.println();
   pinSetup();
 
   if (!setupCamera())
   {
-    // Serial.println("Camera Setup Failed!");
+    Serial.println("Camera Setup Failed!");
     while (true)
     {
       delay(100);
     }
   }
 
-  // if(!takePhoto()) Serial.println("can't take a photo");
+  if (!takePhoto())
+    Serial.println("can't take a photo");
 
   wifiSetup();
   timeChek();
@@ -56,7 +57,7 @@ void loop()
 
     while (numNewMessages)
     {
-      // Serial.println("got response");
+      Serial.println("got response");
       handleNewMessages(numNewMessages);
       numNewMessages = bot.getUpdates(bot.last_message_received + 1);
     }
@@ -77,47 +78,47 @@ void pinSetup()
 
 void wifiSetup()
 {
-  // Serial.print("Connecting to Wifi SSID ");
-  // Serial.print(ssid);
+  Serial.print("Connecting to Wifi SSID ");
+  Serial.print(ssid);
   WiFi.begin(ssid, password);
   secured_client.setCACert(TELEGRAM_CERTIFICATE_ROOT);
   while (WiFi.status() != WL_CONNECTED)
   {
-    // Serial.print(".");
+    Serial.print(".");
     delay(500);
   }
-  // Serial.print("\nWiFi connected. IP address: ");
-  // Serial.println(WiFi.localIP());
+  Serial.print("\nWiFi connected. IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void timeChek()
 {
-  // Serial.print("Retrieving time: ");
+  Serial.print("Retrieving time: ");
   configTime(0, 0, "pool.ntp.org");
   time_t now = time(nullptr);
   while (now < 24 * 3600)
   {
-    // Serial.print(".");
+    Serial.print(".");
     delay(100);
     now = time(nullptr);
   }
-  // Serial.println(now);
+  Serial.println(now);
 }
 
 void handleNewMessages(int numNewMessages)
 {
   String mainMenu = "[[\"photo\", \"photo with LED\"],[\"photo with flash\"],";
   mainMenu += "[\"printer ON\", \"printer OFF\"],";
-  mainMenu += "[\"current resolution\",\"setup frame size\"],";
+  mainMenu += "[\"current resolution\",\"setup frame size\"]]";
   String frameSizeMenu = "[[\"UXGA\", \"SXGA\", \"XGA\"],[\"SVGA\", \"VGA\"], [\"back\"]]";
-  // Serial.println("handleNewMessages");
-  // Serial.println(String(numNewMessages));
+  Serial.println("handleNewMessages");
+  Serial.println(String(numNewMessages));
 
   for (int i = 0; i < numNewMessages; i++)
   {
     String text = bot.messages[i].text;
 
-    // Serial.println(String(bot.messages[i].chat_id));
+    Serial.println(String(bot.messages[i].chat_id));
 
     if (text == "start" || text == "/start" || text == "back")
     {
@@ -234,7 +235,7 @@ void captureAndSendPhoto()
   fb = esp_camera_fb_get();
   if (!fb)
   {
-    // Serial.println("Camera capture failed");
+    Serial.println("Camera capture failed");
     return;
   }
 
@@ -245,7 +246,7 @@ void captureAndSendPhoto()
 
 void sendTelegramPhoto(uint8_t *photoData, size_t photoSize)
 {
-  // Serial.println("Sending photo to Telegram...");
+  Serial.println("Sending photo to Telegram...");
   bot.sendChatAction(chat_id, "upload_photo");
 
   HTTPClient http;
@@ -277,18 +278,18 @@ void sendTelegramPhoto(uint8_t *photoData, size_t photoSize)
 
   if (httpResponseCode == 200)
   {
-    // Serial.println("Photo sent successfully");
+    Serial.println("Photo sent successfully");
   }
   else
   {
-    // Serial.print("Error sending photo. HTTP response code: ");
-    // Serial.println(httpResponseCode);
+    Serial.print("Error sending photo. HTTP response code: ");
+    Serial.println(httpResponseCode);
     bot.sendMessage(chat_id, "Error sending photo.", "");
   }
 
   http.end();
 
-  // Serial.println("done");
+  Serial.println("done");
 }
 
 void changeResolution(framesize_t newSize)
